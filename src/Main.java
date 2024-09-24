@@ -1,59 +1,85 @@
+import java.util.ArrayList;
 import java.util.Scanner;
 
 public class Main {
     private static final char EXPRESSION_TERMINATOR = '@';
     private final static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) {
-        String testEquation = keyboard.nextLine();
-        parseEquation(testEquation);
+        var eq = tokenizeEquation("-35 + 3 - 2");
+        parseEquation(eq);
     }
 
-    public static void parseEquation(String equation) {
-        equation = equation + " " + EXPRESSION_TERMINATOR; // Equation terminator?
-        Scanner parser = new Scanner(equation).useDelimiter(" ");
+    public static ArrayList<Character> tokenizeEquation(String equation) {
+        ArrayList<Character> tokens = new ArrayList<>();
+        Scanner tokenizer = new Scanner(equation).useDelimiter("");
 
-
-        int[] operands = new int[2];
-
-        // This pattern will always repeat. Expressions are always N o N o ... pattern.
-        // 7 + 8 * 3
-        // 8x3=24
-        // 7+24=31
-        int a = parser.nextInt();
-        char op = parser.next().charAt(0);
-        int b = parser.nextInt();
-        char nxtOp = parser.next().charAt(0);
-        int c = 0;
-        System.out.println(nxtOp);
-
-        if (nxtOp != EXPRESSION_TERMINATOR) {
-            print("More to calculate");
-            c = parser.nextInt();
+        while (tokenizer.hasNext()) {
+            char nextToken = tokenizer.next().charAt(0);
+            if (nextToken != ' ')
+                tokens.add(nextToken);
         }
 
-        printf("%d%s%d%s%d\n", a, op, b, nxtOp, c);
+        print(tokens.size());
+        print(tokens.toString());
+        return tokens;
+    }
 
-        switch(op) {
+    public static void parseEquation(ArrayList<Character> equation) {
+        ArrayList<Integer> numbers = new ArrayList<>();
+        ArrayList<Character> operators = new ArrayList<>();
+
+        String constructedNumber = "";
+        for (int i = 0; i < equation.size(); i++) {
+            char nextToken = equation.get(i);
+            print(nextToken);
+
+            if (Character.isDigit(nextToken)) {
+                constructedNumber += nextToken;
+            } else {
+                numbers.add(Integer.parseInt(constructedNumber));
+                constructedNumber = "";
+                operators.add(nextToken);
+            }
+        }
+
+        numbers.add(Integer.parseInt(constructedNumber));
+
+        print(numbers.toString());
+        print(operators.toString());
+
+    }
+
+    public static int calculate(int a, int b, char operator) {
+        printf("%d %c %d = ", a, operator, b);
+        int result;
+        switch(operator) {
             case '+':
-                print(a + b);
+                result = (a + b);
                 break;
             case '-':
-                print(a - b);
+                result = (a - b);
                 break;
             case '*':
-                print(a * b);
+                result = (a * b);
                 break;
             case '/':
-                print(a / b);
+                result = (a / b);
                 break;
             case '^':
-                print((int) Math.pow(a, b));
+                result = ((int) Math.pow(a, b));
                 break;
+            default:
+                result = 0;
         }
+        return result;
     }
 
     public static void print(int num) {
         System.out.println(num);
+    }
+
+    public static void print(char c) {
+        System.out.println(c);
     }
 
     public static void print(String str) {
