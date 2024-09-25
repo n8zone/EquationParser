@@ -62,21 +62,23 @@ public class Main {
         ArrayList<String> numbers = new ArrayList<>();
         ArrayList<String> operators = new ArrayList<>();
 
-        String constructedNumber = "";
+        StringBuilder constructedNumber = new StringBuilder();
         for (int i = 0; i < equation.size(); i++) {
             String nextToken = equation.get(i);
             print(nextToken);
 
             if (Character.isDigit(nextToken.charAt(0))) {
-                constructedNumber += nextToken;
+                constructedNumber.append(nextToken);
             } else {
-                numbers.add(constructedNumber);
-                constructedNumber = "";
                 operators.add(nextToken);
+                if (!constructedNumber.isEmpty()) {
+                    numbers.add(constructedNumber.toString());
+                    constructedNumber = new StringBuilder();
+                }
             }
         }
 
-        numbers.add(constructedNumber);
+        numbers.add(constructedNumber.toString());
 
         print(numbers.toString());
         print(operators.toString());
