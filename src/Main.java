@@ -6,7 +6,32 @@ public class Main {
     private final static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) {
         var eq = tokenizeEquation("-35 + 3 - 2");
-        parseEquation(eq);
+        print(calculate(5, (calculate(3, 2, '*')), '+'));
+
+        ASTNode test1 = new ASTNode("+");
+        ASTNode left = new ASTNode("5");
+
+        ASTNode test2 = new ASTNode("*");
+        ASTNode left2 = new ASTNode("3");
+        ASTNode right2 = new ASTNode("2");
+
+        ASTNode test3 = new ASTNode("-");
+        ASTNode left3 = new ASTNode("7");
+        ASTNode right3 = new ASTNode("1");
+
+
+        test1.left = left;
+        test1.right = test2;
+
+        test2.left = left2;
+        test2.right = test3;
+
+        test3.left = left3;
+        test3.right = right3;
+
+        print(test1.Compute());
+
+
     }
 
     public static ArrayList<Character> tokenizeEquation(String equation) {
