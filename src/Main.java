@@ -1,11 +1,12 @@
+import java.lang.reflect.Array;
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.Scanner;
 
 public class Main {
-    private static final char EXPRESSION_TERMINATOR = '@';
     private final static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) {
-        var eq = tokenizeEquation("-35 + 3 - 2");
+        var eq = tokenizeEquation("5 + 3 - 2");
         print(calculate(5, (calculate(3, 2, '*')), '+'));
 
         ASTNode test1 = new ASTNode("+");
@@ -31,16 +32,24 @@ public class Main {
 
         print(test1.Compute());
 
+        print(parseEquation(eq).toString());
+
+        ArrayList<String> parsedEquation = parseEquation(eq);
+
+        ASTNode treeStart = buildASTree(eq);
+        print(treeStart.toString());
+        print(treeStart.right.toString());
+
 
     }
 
-    public static ArrayList<Character> tokenizeEquation(String equation) {
-        ArrayList<Character> tokens = new ArrayList<>();
+    public static ArrayList<String> tokenizeEquation(String equation) {
+        ArrayList<String> tokens = new ArrayList<>();
         Scanner tokenizer = new Scanner(equation).useDelimiter("");
 
         while (tokenizer.hasNext()) {
-            char nextToken = tokenizer.next().charAt(0);
-            if (nextToken != ' ')
+            String nextToken = tokenizer.next();
+            if (!nextToken.equals(" "))
                 tokens.add(nextToken);
         }
 
@@ -49,29 +58,53 @@ public class Main {
         return tokens;
     }
 
-    public static void parseEquation(ArrayList<Character> equation) {
-        ArrayList<Integer> numbers = new ArrayList<>();
-        ArrayList<Character> operators = new ArrayList<>();
+    public static ArrayList<String> parseEquation(ArrayList<String> equation) {
+        ArrayList<String> numbers = new ArrayList<>();
+        ArrayList<String> operators = new ArrayList<>();
 
         String constructedNumber = "";
         for (int i = 0; i < equation.size(); i++) {
-            char nextToken = equation.get(i);
+            String nextToken = equation.get(i);
             print(nextToken);
 
-            if (Character.isDigit(nextToken)) {
+            if (Character.isDigit(nextToken.charAt(0))) {
                 constructedNumber += nextToken;
             } else {
-                numbers.add(Integer.parseInt(constructedNumber));
+                numbers.add(constructedNumber);
                 constructedNumber = "";
                 operators.add(nextToken);
             }
         }
 
-        numbers.add(Integer.parseInt(constructedNumber));
+        numbers.add(constructedNumber);
 
         print(numbers.toString());
         print(operators.toString());
 
+        ArrayList<String> parsed = new ArrayList<>();
+
+        parsed.addAll(numbers);
+        parsed.addAll(operators);
+
+        return parsed;
+
+    }
+
+    public static ASTNode buildASTree(ArrayList<String> tokenizedEquation) {
+        printf("Generating ASTree from: %s\n", tokenizedEquation.toString());
+
+        String nodeValue = tokenizedEquation.removeFirst();
+        ASTNode constructedNode = new ASTNode(nodeValue);
+        constructedNode.right = buildNextNode(tokenizedEquation.removeFirst(), constructedNode);
+
+        return constructedNode;
+    }
+
+    public static ASTNode buildNextNode(String value, ASTNode prev) {
+        printf("Building node from: %s\n", value);
+        ASTNode constructedNode = new ASTNode(value);
+        constructedNode.left = prev;
+        return constructedNode;
     }
 
     public static int calculate(int a, int b, char operator) {

@@ -44,4 +44,8 @@ public class ASTNode {
                 this.value.equals("+") ||
                 this.value.equals("-")   );
     }
+
+    public String toString() {
+        return String.format("Value: %s\nLeft: %s\nRight: %s", this.value, this.left != null ? this.left.value : "n/a", this.right != null ? this.right.value : "n/a");
+    }
 }
