@@ -45,7 +45,37 @@ public class ASTNode {
                 this.value.equals("-")   );
     }
 
+    public ASTNode getLeft() {
+        return this.left;
+    }
+
+    public String getLeftValue() {
+        if (this.left != null) {
+            return this.left.value;
+        } else {
+            return "CAP";
+        }
+    }
+
+    public String getRightValue() {
+        if (this.right != null) {
+            return this.right.value;
+        } else {
+            return "CAP";
+        }
+    }
+
+    public String getValue() {
+        return this.value;
+    }
+
     public String toString() {
-        return String.format("Value: %s\nLeft: %s\nRight: %s", this.value, this.left != null ? this.left.value : "n/a", this.right != null ? this.right.value : "n/a");
+        return String.format("""
+                        Value: %s
+                        Left: %s
+                        Right: %s""",
+                this.getValue(),
+                this.getLeftValue(),
+                this.getRightValue() );
     }
 }
