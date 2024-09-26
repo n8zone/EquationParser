@@ -1,16 +1,16 @@
 public class ASTNode {
-    String value;
+    Token value;
     ASTNode left;
     ASTNode right;
-    public ASTNode(String value) {
+    public ASTNode(Token value) {
         this.value = value;
     }
 
     public int Compute() {
-        if (this.isOperand()) {
-            return calculate(this.left.Compute(), this.right.Compute(), this.value.charAt(0));
+        if (this.isOperator()) {
+            return calculate(this.left.Compute(), this.right.Compute(), value.toString().charAt(0));
         } else {
-            return Integer.parseInt(this.value);
+            return Integer.parseInt(value.toString());
         }
     }
 
@@ -38,42 +38,46 @@ public class ASTNode {
         return result;
     }
 
-    private boolean isOperand() {
-        return (this.value.equals("*") ||
-                this.value.equals("/") ||
-                this.value.equals("+") ||
-                this.value.equals("-")   );
+    private boolean isOperator() {
+        return value.isOperator();
     }
 
     public ASTNode getLeft() {
-        return this.left;
+        return left;
+    }
+
+    public ASTNode getRight() {
+        return right;
     }
 
     public String getLeftValue() {
         if (this.left != null) {
-            return this.left.value;
+            return String.format("ASTNode(%s)", left.value.getValue());
         } else {
-            return "CAP";
+            return "LEAF";
         }
     }
 
     public String getRightValue() {
         if (this.right != null) {
-            return this.right.value;
+            return String.format("ASTNode(%s)", right.value.getValue());
         } else {
-            return "CAP";
+            return "[     ]";
         }
     }
 
     public String getValue() {
-        return this.value;
+        return value.getValue();
     }
 
     public String toString() {
         return String.format("""
+                        === NODE ===
                         Value: %s
                         Left: %s
-                        Right: %s""",
+                        Right: %s
+                        === ==== ===
+                        """,
                 this.getValue(),
                 this.getLeftValue(),
                 this.getRightValue() );

@@ -1,5 +1,7 @@
 public class EZ {
-    // I'm too lazy to write System.out.println
+
+    // A collection of useful helper functions
+
     public static void print(String str, Object... objects) {
         System.out.printf(str, objects);
     }
@@ -14,5 +16,24 @@ public class EZ {
 
     public static void println(int num) {
         println("%d", num);
+    }
+
+    public static boolean isOperator(String str) {
+        return (str.equals("*") ||
+                str.equals("/") ||
+                str.equals("+") ||
+                str.equals("-")   );
+    }
+
+    public static boolean isNumber(String str) {
+        boolean isNumber = true;
+
+        try {
+            Integer.parseInt(str);
+        } catch (NumberFormatException nfe) {
+            isNumber = false;
+        }
+
+        return isNumber;
     }
 }

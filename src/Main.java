@@ -6,18 +6,18 @@ import java.util.Scanner;
 public class Main {
     private final static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) {
-        var eq = tokenizeEquation("5 + 3 - 2");
+        var eq = tokenizeEquation("-5 + 3 - 2");
 
-        ASTNode test1 = new ASTNode("+");
-        ASTNode left = new ASTNode("5");
+        ASTNode test1 = new ASTNode(new Token("+"));
+        ASTNode left = new ASTNode(new Token("5"));
 
-        ASTNode test2 = new ASTNode("-");
-        ASTNode left2 = new ASTNode("3");
-        ASTNode right2 = new ASTNode("2");
+        ASTNode test2 = new ASTNode(new Token("-"));
+        ASTNode left2 = new ASTNode(new Token("5"));
+        ASTNode right2 = new ASTNode(new Token("2"));
 
-        ASTNode test3 = new ASTNode("-");
-        ASTNode left3 = new ASTNode("7");
-        ASTNode right3 = new ASTNode("1");
+        ASTNode test3 = new ASTNode(new Token("-"));
+        ASTNode left3 = new ASTNode(new Token("7"));
+        ASTNode right3 = new ASTNode(new Token("2"));
 
 
         test1.left = left;
@@ -29,11 +29,7 @@ public class Main {
         test3.left = left3;
         test3.right = right3;
 
-        EZ.println(test1.Compute());
-
-        EZ.print(parseEquation(eq).toString());
-
-        ArrayList<String> parsedEquation = parseEquation(eq);
+        EZ.println("Answer: %d", test1.Compute());
 
         ASTNode treeStart = buildASTree(eq);
         EZ.print(treeStart.toString());
@@ -42,68 +38,60 @@ public class Main {
 
     }
 
-    public static ArrayList<String> tokenizeEquation(String equation) {
-        ArrayList<String> tokens = new ArrayList<>();
-        Scanner tokenizer = new Scanner(equation).useDelimiter("");
+    // TOKENIZER -STRICTLY- HANDLES CONVERTING INPUT INTO _TOKENS_ NO LOGIC!!!
+    // ALL LOGIC IS HANDLED BY PARSER
+    public static ArrayList<Token> tokenizeEquation(String equation) {
+        ArrayList<Token> tokens = new ArrayList<>();
+        Scanner tokenizer = new Scanner(equation).useDelimiter(" ");
 
+        // Ugly and bad; Do better later
         while (tokenizer.hasNext()) {
-            String nextToken = tokenizer.next();
-            if (!nextToken.equals(" "))
-                tokens.add(nextToken);
+            Token nextToken = new Token(tokenizer.next());
+            tokens.add(nextToken);
         }
 
         EZ.println(tokens.size());
         EZ.println(tokens.toString());
+
+
         return tokens;
     }
 
-    public static ArrayList<String> parseEquation(ArrayList<String> equation) {
-        ArrayList<String> numbers = new ArrayList<>();
-        ArrayList<String> operators = new ArrayList<>();
+    // Parser
+    // Handles operator precedence
+    // Builds AST
+    // Convert to postfix
+    // Push operands onto stack, when encountering an operator create new 'parent' ASTNode with operands as it's children
 
-        StringBuilder constructedNumber = new StringBuilder();
-        for (int i = 0; i < equation.size(); i++) {
-            String nextToken = equation.get(i);
-            EZ.println(nextToken);
+    public static ASTNode parseEquation(ArrayList<String> tokenizedEquation) {
+        // Convert token array to postfix
+            // Shunting yard algo
 
-            if (Character.isDigit(nextToken.charAt(0))) {
-                constructedNumber.append(nextToken);
-            } else {
-                operators.add(nextToken);
-                if (!constructedNumber.isEmpty()) {
-                    numbers.add(constructedNumber.toString());
-                    constructedNumber = new StringBuilder();
-                }
-            }
-        }
-
-        numbers.add(constructedNumber.toString());
-
-        EZ.println(numbers.toString());
-        EZ.println(operators.toString());
-
-        ArrayList<String> parsed = new ArrayList<>();
-
-        parsed.addAll(numbers);
-        parsed.addAll(operators);
-
-        return parsed;
-
+        // loop through array
+            // if number:
+                // create node
+                // push onto stack
+            // else if operator:
+                // create parent node
+                // pop first two numbers from stack
+                // push parent node to stack
+        return new ASTNode(new Token("hello!!!"));
     }
 
-    public static ASTNode buildASTree(ArrayList<String> tokenizedEquation) {
+
+    public static ASTNode buildASTree(ArrayList<Token> tokenizedEquation) {
         EZ.print("Generating ASTree from: %s\n", tokenizedEquation.toString());
 
-        String nodeValue = tokenizedEquation.removeFirst();
+        Token nodeValue = tokenizedEquation.removeFirst();
         ASTNode constructedNode = new ASTNode(nodeValue);
         constructedNode.right = buildNextNode(tokenizedEquation.removeFirst(), constructedNode);
 
         return constructedNode;
     }
 
-    public static ASTNode buildNextNode(String value, ASTNode prev) {
-        EZ.print("Building node from: %s\n", value);
-        ASTNode constructedNode = new ASTNode(value);
+    public static ASTNode buildNextNode(Token token, ASTNode prev) {
+        EZ.print("Building node from: %s\n", token.getValue());
+        ASTNode constructedNode = new ASTNode(token);
         constructedNode.left = prev;
         return constructedNode;
     }
