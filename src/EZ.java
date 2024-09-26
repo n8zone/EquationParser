@@ -14,7 +14,29 @@ public class EZ {
         print("%d", num);
     }
 
+    public static void printAny(Object obj) {
+        print(obj.toString());
+    }
+
+    public static void printAnyln(Object obj) {
+        println(obj.toString());
+    }
+
     public static void println(int num) {
         println("%d", num);
+    }
+
+    public static void print(int... nums) {
+        print(nums[0]);
+        for (int i = 1; i < nums.length; i++) {
+            print(", %d", nums[i]);
+        }
+        print("\n");
+    }
+
+    public static void println(int... nums) {
+        for (int i = 0; i < nums.length; i++) {
+            println("%d", nums[i]);
+        }
     }
 }

@@ -6,15 +6,20 @@ public class Token {
     }
 
     public boolean isOperator() {
-        return "+-*/".contains(value);
+        return "+-*/^".contains(value);
     }
 
     public boolean isNumber() {
         try {
+            Double.parseDouble(value);
             return true;
         } catch (NumberFormatException nfe) {
             return false;
         }
+    }
+
+    public boolean isLegal() {
+        return isOperator() || isNumber();
     }
 
     public Double toNumber() throws Exception {
@@ -32,5 +37,19 @@ public class Token {
     @Override
     public String toString() {
         return value;
+    }
+
+    public String getType() {
+        if (isOperator())
+            return "Operator";
+        else if (isNumber())
+            return "Numeric";
+        else
+            return "Illegal";
+
+    }
+
+    public void display() {
+        EZ.println("%sToken(%s)", getType(), value);
     }
 }

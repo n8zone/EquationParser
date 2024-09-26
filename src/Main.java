@@ -1,15 +1,14 @@
-import java.lang.reflect.Array;
 import java.util.ArrayList;
-import java.util.Objects;
 import java.util.Scanner;
+import java.util.Stack;
 
 public class Main {
     private final static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) {
-        var eq = tokenizeEquation("-5 + 3 - 2");
+        var eq = tokenizeEquation("-5.2 + 3 - 2");
 
         ASTNode test1 = new ASTNode(new Token("+"));
-        ASTNode left = new ASTNode(new Token("5"));
+        ASTNode left = new ASTNode(new Token("50.3"));
 
         ASTNode test2 = new ASTNode(new Token("-"));
         ASTNode left2 = new ASTNode(new Token("5"));
@@ -29,11 +28,21 @@ public class Main {
         test3.left = left3;
         test3.right = right3;
 
-        EZ.println("Answer: %d", test1.Compute());
+        EZ.println("Answer: %,.2f", test1.Compute());
 
-        ASTNode treeStart = buildASTree(eq);
-        EZ.print(treeStart.toString());
-        EZ.print(treeStart.right.toString());
+        ArrayList<Token> samplePostfix = new ArrayList<>();
+
+        samplePostfix.add(new Token("15"));
+        samplePostfix.add(new Token("3"));
+        samplePostfix.add(new Token("0"));
+        samplePostfix.add(new Token("/"));
+        samplePostfix.add(new Token("+"));
+
+        EZ.printAnyln(samplePostfix);
+
+        ASTNode treeStart = parseEquation(samplePostfix);
+
+        EZ.println("Computed: %.2f", treeStart.Compute());
 
 
     }
@@ -47,7 +56,11 @@ public class Main {
         // Ugly and bad; Do better later
         while (tokenizer.hasNext()) {
             Token nextToken = new Token(tokenizer.next());
-            tokens.add(nextToken);
+
+            if (nextToken.isLegal()) {
+                tokens.add(nextToken);
+            }
+
         }
 
         EZ.println(tokens.size());
@@ -63,9 +76,39 @@ public class Main {
     // Convert to postfix
     // Push operands onto stack, when encountering an operator create new 'parent' ASTNode with operands as it's children
 
-    public static ASTNode parseEquation(ArrayList<String> tokenizedEquation) {
+    public static ASTNode parseEquation(ArrayList<Token> tokenizedEquation) {
         // Convert token array to postfix
-            // Shunting yard algo
+            // Shunting yard algo??
+
+        EZ.println("Tokens: %s", tokenizedEquation.toString());
+
+        Stack<ASTNode> operators = new Stack<>();
+        ArrayList<ASTNode> operands = new ArrayList<>();
+
+        for (Token token : tokenizedEquation) {
+            ASTNode node = new ASTNode(token);
+            if (token.isNumber()) {
+                operands.add(node);
+                EZ.printAnyln(operands);
+            } else {
+                node.right = operands.removeFirst();
+
+                boolean hasRight = (!operands.isEmpty()  && operands.getFirst() != null);
+
+                if (hasRight) {
+                    node.left = operands.removeFirst();
+                } else {
+                    node.left = operators.pop();
+                }
+
+                operators.add(node);
+            }
+
+            //EZ.printAnyln(node);
+
+        }
+
+        return operators.removeFirst();
 
         // loop through array
             // if number:
@@ -75,24 +118,5 @@ public class Main {
                 // create parent node
                 // pop first two numbers from stack
                 // push parent node to stack
-        return new ASTNode(new Token("hello!!!"));
-    }
-
-
-    public static ASTNode buildASTree(ArrayList<Token> tokenizedEquation) {
-        EZ.print("Generating ASTree from: %s\n", tokenizedEquation.toString());
-
-        Token nodeValue = tokenizedEquation.removeFirst();
-        ASTNode constructedNode = new ASTNode(nodeValue);
-        constructedNode.right = buildNextNode(tokenizedEquation.removeFirst(), constructedNode);
-
-        return constructedNode;
-    }
-
-    public static ASTNode buildNextNode(Token token, ASTNode prev) {
-        EZ.print("Building node from: %s\n", token.getValue());
-        ASTNode constructedNode = new ASTNode(token);
-        constructedNode.left = prev;
-        return constructedNode;
     }
 }

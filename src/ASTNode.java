@@ -6,16 +6,16 @@ public class ASTNode {
         this.value = value;
     }
 
-    public int Compute() {
+    public double Compute() {
         if (this.isOperator()) {
             return calculate(this.left.Compute(), this.right.Compute(), value.toString().charAt(0));
         } else {
-            return Integer.parseInt(value.toString());
+            return Double.parseDouble(value.toString());
         }
     }
 
-    private int calculate(int a, int b, char operator) {
-        int result;
+    private double calculate(double a, double b, char operator) {
+        double result;
         switch(operator) {
             case '+':
                 result = (a + b);
@@ -30,7 +30,9 @@ public class ASTNode {
                 result = (a / b);
                 break;
             case '^':
-                result = ((int) Math.pow(a, b));
+                EZ.printAnyln(a);
+                EZ.printAnyln(b);
+                result = (Math.pow(a, b));
                 break;
             default:
                 result = 0;
@@ -51,7 +53,7 @@ public class ASTNode {
     }
 
     public String getLeftValue() {
-        if (this.left != null) {
+        if (left != null) {
             return String.format("ASTNode(%s)", left.value.getValue());
         } else {
             return "LEAF";
@@ -59,7 +61,7 @@ public class ASTNode {
     }
 
     public String getRightValue() {
-        if (this.right != null) {
+        if (right != null) {
             return String.format("ASTNode(%s)", right.value.getValue());
         } else {
             return "[     ]";
@@ -78,8 +80,8 @@ public class ASTNode {
                         Right: %s
                         === ==== ===
                         """,
-                this.getValue(),
-                this.getLeftValue(),
-                this.getRightValue() );
+                getValue(),
+                getLeftValue(),
+                getRightValue() );
     }
 }
