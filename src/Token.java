@@ -30,8 +30,20 @@ public class Token {
         }
     }
 
+    public boolean isNumeric() {
+        return isDecimal() || isNumber();
+    }
+
+    public boolean isDecimal() {
+        return value.equals(".");
+    }
+
+    public boolean isWhitespace() {
+        return value.equals(" ");
+    }
+
     public boolean isLegal() {
-        return isOperator() || isNumber() || isBracket();
+        return isOperator() || isNumber() || isBracket() || isDecimal();
     }
 
     public char toOperator() throws Exception {
