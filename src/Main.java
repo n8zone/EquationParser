@@ -5,25 +5,10 @@ import java.util.Stack;
 public class Main {
     private final static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) {
-        var eq = tokenizeEquation("-5.2 + 3 - 2");
+        EZ.println("Enter any valid math equation: ");
+        String eq2 = keyboard.nextLine();
 
-        var samplePostfix = createSamplePostFix("10 5 * 2 +");
-        ArrayList<Token> samplePostfix2 = createSamplePostFix("-5 5 *");
-        var sample3 = createSamplePostFix("5 2 3 * -");
-
-
-
-
-
-        EZ.println("Result: %.2f", evaluatePostfix(sample3));
-        EZ.println("Result: %.2f", evaluatePostfix(samplePostfix2));
-        EZ.println("Result: %.2f", evaluatePostfix(samplePostfix));
-        EZ.println("Result: %.2f", evaluatePostfix(createSamplePostFix("10 5 * 2 / 10 2 ^ -")));
-
-        var test = toPostfix(tokenizeEquation("5 ^ 2 + 2 * 5"));
-
-        EZ.println("Result: %.2f", evaluatePostfix(test));
-        EZ.println("Result: %.2f", evaluatePostfix(toPostfix(eq)));
+        EZ.printResult(evaluatePostfix(toPostfix(tokenizeEquation(eq2))));
 
     }
 
@@ -31,20 +16,23 @@ public class Main {
     // ALL LOGIC IS HANDLED BY PARSER
     public static ArrayList<Token> tokenizeEquation(String equation) {
         ArrayList<Token> tokens = new ArrayList<>();
-        Scanner tokenizer = new Scanner(equation).useDelimiter(" ");
+        Scanner tokenizer = new Scanner(equation).useDelimiter("");
+        Token prevToken = null;
 
         while (tokenizer.hasNext()) {
             Token nextToken = new Token(tokenizer.next());
 
             if (nextToken.isLegal()) {
+                if (prevToken != null && prevToken.isNumber() && nextToken.isNumber()) {
+                    String numberString = prevToken.getValue() + nextToken.getValue();
+                    nextToken = new Token(numberString);
+                    tokens.removeLast();
+                }
                 tokens.add(nextToken);
+                prevToken = nextToken;
             }
 
         }
-
-        EZ.println(tokens.size());
-        EZ.println(tokens.toString());
-
 
         return tokens;
     }
@@ -54,7 +42,9 @@ public class Main {
             case '^' -> 3;
             case '*', '/' -> 2;
             case '+', '-' -> 1;
-            default -> -1;
+            case ')' -> 0;
+            case '(' -> -1;
+            default -> -2;
         };
     }
 
@@ -65,8 +55,6 @@ public class Main {
         Stack<Token> operators = new Stack<>();
 
         for (Token token : tokenizedEquation) {
-            EZ.printAnyln(operators);
-            EZ.printAnyln(token);
             if (token.isNumber()) {
                 postfixEquation.add(token);
             } else  {
@@ -76,10 +64,13 @@ public class Main {
                 } else {
                     Token topToken = operators.peek();
                     try {
-                        int topTokenPrecedence = getPrecedence(topToken.toOperator());
-                        int curTokenPrecedence = getPrecedence(token.toOperator());
-                        if (curTokenPrecedence > topTokenPrecedence) {
+                        if (token.isLeftBracket() || getPrecedence(token.toOperator()) > getPrecedence(topToken.toOperator())) {
                             operators.push(token);
+                        } else if (token.isRightBracket()) {
+                            do {
+                                postfixEquation.add(operators.pop());
+                            } while (!operators.peek().isLeftBracket());
+                                operators.pop(); // Discard left bracket, its useless.
                         } else {
                             do {
                                 postfixEquation.add(operators.pop());
@@ -99,16 +90,12 @@ public class Main {
 
         EZ.printAnyln(postfixEquation);
 
-
-
         return postfixEquation;
     }
 
     public static Double evaluatePostfix(ArrayList<Token> postfixEq) {
         Stack<Double> operands = new Stack<>();
 
-        EZ.println("Tokens:");
-        EZ.printAnyln(postfixEq);
 
         for (Token token : postfixEq) {
             try {
@@ -126,8 +113,6 @@ public class Main {
                 }
 
                 result = calculate(a, b, operator);
-
-                EZ.println("Performing: %.1f, %c, %.1f = %.1f",a, token.getValue().charAt(0), b, result);
 
                 operands.push(result);
             }

@@ -39,4 +39,8 @@ public class EZ {
             println("%d", nums[i]);
         }
     }
+
+    public static void printResult(double result) {
+        System.out.printf("Result: %.2f\n", result);
+    }
 }
