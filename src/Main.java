@@ -7,46 +7,18 @@ public class Main {
     public static void main(String[] args) {
         var eq = tokenizeEquation("-5.2 + 3 - 2");
 
-        // DO NOT FORGET TO ADD DIV BY 0 HANDLING
-
-        ASTNode test1 = new ASTNode(new Token("+"));
-        ASTNode left = new ASTNode(new Token("50.3"));
-
-        ASTNode test2 = new ASTNode(new Token("-"));
-        ASTNode left2 = new ASTNode(new Token("5"));
-        ASTNode right2 = new ASTNode(new Token("2"));
-
-        ASTNode test3 = new ASTNode(new Token("-"));
-        ASTNode left3 = new ASTNode(new Token("7"));
-        ASTNode right3 = new ASTNode(new Token("2"));
-
-
-        test1.left = left;
-        test1.right = test2;
-
-        test2.left = left2;
-        test2.right = right2;
-
-        test3.left = left3;
-        test3.right = right3;
-
-        EZ.println("Answer: %,.2f", test1.Compute());
-
-        var samplePostfix = createSamplePostFix("5 2 3 5 ^ * /");
+        var samplePostfix = createSamplePostFix("10 5 * 2 +");
         ArrayList<Token> samplePostfix2 = createSamplePostFix("-5 5 *");
         var sample3 = createSamplePostFix("5 2 3 * -");
 
 
 
-        EZ.printAnyln(samplePostfix);
 
-        ASTNode treeStart = parseEquation(samplePostfix);
-        ASTNode tree2Start = parseEquation(samplePostfix2);
-        ASTNode tree3 = parseEquation(sample3);
 
-        EZ.println("Computed: %.2f", treeStart.Compute());
-        EZ.println("Computed: %.2f", tree2Start.Compute());
-        EZ.println("Computed: %.2f", tree3.Compute());
+        EZ.println("Result: %.2f", test(sample3));
+        EZ.println("Result: %.2f", test(samplePostfix2));
+        EZ.println("Result: %.2f", test(samplePostfix));
+        EZ.println("Result: %.2f", test(createSamplePostFix("10 5 * 2 / 10 2 ^ -")));
 
     }
 
@@ -78,36 +50,43 @@ public class Main {
     // Convert to postfix
     // Push operands onto stack, when encountering an operator create new 'parent' ASTNode with operands as it's children
 
-    public static ASTNode parseEquation(ArrayList<Token> tokenizedEquation) {
-        EZ.println("Tokens: %s", tokenizedEquation.toString());
+    public static ArrayList<Token> toPostfix(ArrayList<Token> tokenizedEquation) {
+       // Shunting-yard algorithm
 
-        Stack<ASTNode> operators = new Stack<>();
-        ArrayList<ASTNode> operands = new ArrayList<>();
+        return tokenizedEquation;
+    }
 
-        for (Token token : tokenizedEquation) {
-            ASTNode node = new ASTNode(token);
-            if (token.isNumber()) {
-                operands.add(node);
-            } else {
-                if (!operators.isEmpty()) {
-                    node.left = operators.pop();
-                } else {
-                    node.left = operands.removeLast();
-                }
+    public static Double test(ArrayList<Token> postfixEq) {
+        Stack<Double> operands = new Stack<>();
 
-                if (!operators.isEmpty()) {
-                    node.right = operators.pop();
-                } else {
-                    node.right = operands.removeLast();
-                }
+        for (Token token : postfixEq) {
+            try {
+                operands.push(token.toNumber());
+            } catch (Exception e) {
+                Double a, b, c;
+                b = operands.pop();
+                a = operands.pop();
 
-                EZ.printAnyln(node);
+                c = calculate(a, b, token.getValue().charAt(0));
 
-                operators.add(node);
+                EZ.println("Performing: %.1f, %c, %.1f",a, token.getValue().charAt(0), b);
+
+                operands.push(c);
             }
         }
+        return operands.pop();
+    }
 
-        return operators.removeFirst();
+    private static double calculate(double a, double b, char operator) {
+        double result = switch (operator) {
+            case '+' -> (a + b);
+            case '-' -> (a - b);
+            case '*' -> (a * b);
+            case '/' -> (a / b);
+            case '^' -> (Math.pow(a, b));
+            default -> 0;
+        };
+        return result;
     }
 
     public static ArrayList<Token> createSamplePostFix(String rawPostFixString) {
