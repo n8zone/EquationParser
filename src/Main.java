@@ -1,10 +1,12 @@
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.Stack;
 
 public class Main {
     private final static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) {
+        int maxPrecision = 10;
         boolean keepGoing = true;
         do {
             String equation = getEquationFromUser();
@@ -17,14 +19,46 @@ public class Main {
                             Divide:      /
                             Add:         +
                             Subtract":   -
-                            Parentheses ()
+                            Parentheses ( )
                             == Valid Operators ==
                             
-                            Equations MUST contain only numbers and valid operators.
+                            Expressions MUST contain only numbers and valid operators.
+                            Expressions MUST have each character separated by whitespace
+                            
+                            Valid Example:    5 + ( 2 * 3 )
+                            Invalid Example:  5 + (2 * 3)
+                            
+                            == COMMANDS==
+                            p : Open maximum precision dialogue
+                                Values < 0 will cancel the change; Values > 15 will default to 15
+                            q : Quit
+                                Quits the program
                         """);
+            } else if (equation.equalsIgnoreCase("p")) {
+                InputMismatchException err = null;
+                EZ.println("How many decimal places would you like to include in the result? (Enter any number below 0 to cancel)");
+                EZ.println("Current: %d", maxPrecision);
+                do {
+                    try {
+                        int input = keyboard.nextInt();
+                        if (input > 0) {
+                            maxPrecision = Math.min(input, 15);
+                        }
+                        EZ.println("Max Precision set to %d", maxPrecision);
+                        err = null;
+                    } catch (InputMismatchException ime) {
+                        System.out.println("Please enter a valid whole number integer");
+                        err = ime;
+                    }
+                    keyboard.nextLine();
+                } while (err != null);
+
+
+            } else if (equation.equalsIgnoreCase("q")) {
+                keepGoing = false;
             } else {
                 try {
-                    EZ.printResult(evaluatePostfix(toPostfix(tokenizeEquation(equation))));
+                    EZ.printResult(evaluatePostfix(toPostfix(tokenizeEquation(equation))), maxPrecision);
                 } catch (Exception e) {
                     EZ.printAnyln(e);
                 }
@@ -51,9 +85,9 @@ public class Main {
 
         String equation;
         do {
-            EZ.println("Enter any valid math equation or type 'help' for help");
+            EZ.println("Enter any valid math equation or command (type 'help' for help)");
             equation = keyboard.nextLine();
-        } while (!isValidEquation(equation) && !equation.equalsIgnoreCase("help"));
+        } while (!isValidEquation(equation) && !equation.equalsIgnoreCase("help") && !equation.equalsIgnoreCase("p") && !equation.equalsIgnoreCase("q"));
 
         return equation;
     }
@@ -87,7 +121,6 @@ public class Main {
             }
 
         }
-        EZ.printAnyln(tokens);
 
         for (Token token : tokens) {
             if (token.isDecimal()) {
