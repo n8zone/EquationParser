@@ -1,122 +1,246 @@
 import java.util.ArrayList;
+import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.util.Stack;
 
 public class Main {
     private final static Scanner keyboard = new Scanner(System.in);
     public static void main(String[] args) {
-        var eq = tokenizeEquation("-5.2 + 3 - 2");
+        int maxPrecision = 10;
+        boolean keepGoing = true;
+        do {
+            String equation = getEquationFromUser();
 
-        ASTNode test1 = new ASTNode(new Token("+"));
-        ASTNode left = new ASTNode(new Token("50.3"));
+            if (equation.equalsIgnoreCase("help")) {
+                EZ.println("""
+                            == Valid Operators ==
+                            Exponent:    ^
+                            Multiply:    *
+                            Divide:      /
+                            Add:         +
+                            Subtract":   -
+                            Parentheses ( )
+                            == Valid Operators ==
+                            
+                            Expressions MUST contain only numbers and valid operators.
+                            Expressions MUST have each character separated by whitespace
+                            
+                            Valid Example:    5 + ( 2 * 3 )
+                            Invalid Example:  5 + (2 * 3)
+                            
+                            == COMMANDS==
+                            p : Open maximum precision dialogue
+                                Values < 0 will cancel the change; Values > 15 will default to 15
+                            q : Quit
+                                Quits the program
+                        """);
+            } else if (equation.equalsIgnoreCase("p")) {
+                InputMismatchException err = null;
+                EZ.println("How many decimal places would you like to include in the result? (Enter any number below 0 to cancel)");
+                EZ.println("Current: %d", maxPrecision);
+                do {
+                    try {
+                        int input = keyboard.nextInt();
+                        if (input > 0) {
+                            maxPrecision = Math.min(input, 15);
+                        }
+                        EZ.println("Max Precision set to %d", maxPrecision);
+                        err = null;
+                    } catch (InputMismatchException ime) {
+                        System.out.println("Please enter a valid whole number integer");
+                        err = ime;
+                    }
+                    keyboard.nextLine();
+                } while (err != null);
 
-        ASTNode test2 = new ASTNode(new Token("-"));
-        ASTNode left2 = new ASTNode(new Token("5"));
-        ASTNode right2 = new ASTNode(new Token("2"));
 
-        ASTNode test3 = new ASTNode(new Token("-"));
-        ASTNode left3 = new ASTNode(new Token("7"));
-        ASTNode right3 = new ASTNode(new Token("2"));
-
-
-        test1.left = left;
-        test1.right = test2;
-
-        test2.left = left2;
-        test2.right = right2;
-
-        test3.left = left3;
-        test3.right = right3;
-
-        EZ.println("Answer: %,.2f", test1.Compute());
-
-        ArrayList<Token> samplePostfix = new ArrayList<>();
-
-        samplePostfix.add(new Token("15"));
-        samplePostfix.add(new Token("3"));
-        samplePostfix.add(new Token("0"));
-        samplePostfix.add(new Token("/"));
-        samplePostfix.add(new Token("+"));
-
-        EZ.printAnyln(samplePostfix);
-
-        ASTNode treeStart = parseEquation(samplePostfix);
-
-        EZ.println("Computed: %.2f", treeStart.Compute());
+            } else if (equation.equalsIgnoreCase("q")) {
+                keepGoing = false;
+            } else {
+                try {
+                    EZ.printResult(evaluatePostfix(toPostfix(tokenizeEquation(equation))), maxPrecision);
+                } catch (Exception e) {
+                    EZ.printAnyln(e);
+                }
 
 
+                String goAgain = "";
+                do {
+                    EZ.println("Would you like to evaluate another equation? (y/n)");
+                    goAgain = keyboard.nextLine();
+                } while (!goAgain.equalsIgnoreCase("y") && !goAgain.equalsIgnoreCase("n"));
+
+                keepGoing = goAgain.equalsIgnoreCase("y");
+            }
+
+        }
+        while(keepGoing);
+
+        EZ.println("Okay, goodbye!");
+
+
+    }
+
+    public static String getEquationFromUser() {
+
+        String equation;
+        do {
+            EZ.println("Enter any valid math equation or command (type 'help' for help)");
+            equation = keyboard.nextLine();
+        } while (!isValidEquation(equation) && !equation.equalsIgnoreCase("help") && !equation.equalsIgnoreCase("p") && !equation.equalsIgnoreCase("q"));
+
+        return equation;
+    }
+
+    public static boolean isValidEquation(String equation) {
+        // Regex to match valid characters (numbers, operators, parentheses)
+        String validPattern = "^[0-9()+\\-*/^\\. ]+$";
+
+        return equation.matches(validPattern);
     }
 
     // TOKENIZER -STRICTLY- HANDLES CONVERTING INPUT INTO _TOKENS_ NO LOGIC!!!
     // ALL LOGIC IS HANDLED BY PARSER
-    public static ArrayList<Token> tokenizeEquation(String equation) {
+    public static ArrayList<Token> tokenizeEquation(String equation) throws Exception {
         ArrayList<Token> tokens = new ArrayList<>();
         Scanner tokenizer = new Scanner(equation).useDelimiter(" ");
+        Token prevToken = null;
 
-        // Ugly and bad; Do better later
         while (tokenizer.hasNext()) {
             Token nextToken = new Token(tokenizer.next());
 
             if (nextToken.isLegal()) {
+                if (prevToken != null && prevToken.isNumeric() && nextToken.isNumeric()) {
+                    String numberString = prevToken.getValue() + nextToken.getValue();
+                    nextToken = new Token(numberString);
+                    tokens.removeLast();
+                }
+
                 tokens.add(nextToken);
+                prevToken = nextToken;
             }
 
         }
 
-        EZ.println(tokens.size());
-        EZ.println(tokens.toString());
-
+        for (Token token : tokens) {
+            if (token.isDecimal()) {
+                throw new Exception(String.format("ERR: Invalid decimal in equation %s", equation));
+            }
+        }
 
         return tokens;
     }
 
-    // Parser
-    // Handles operator precedence
-    // Builds AST
-    // Convert to postfix
-    // Push operands onto stack, when encountering an operator create new 'parent' ASTNode with operands as it's children
+    public static int getOperatorPrecedence(char operator) {
+        return switch(operator) {
+            case '^' -> 3;
+            case '*', '/' -> 2;
+            case '+', '-' -> 1;
+            case ')' -> 0;
+            case '(' -> -1;
+            default -> -2;
+        };
+    }
 
-    public static ASTNode parseEquation(ArrayList<Token> tokenizedEquation) {
-        // Convert token array to postfix
-            // Shunting yard algo??
+    // I am fully aware this is ugly, will try to refactor a bit if I have time
+    public static ArrayList<Token> toPostfix(ArrayList<Token> tokenizedEquation) {
 
-        EZ.println("Tokens: %s", tokenizedEquation.toString());
-
-        Stack<ASTNode> operators = new Stack<>();
-        ArrayList<ASTNode> operands = new ArrayList<>();
+        ArrayList<Token> postfixEquation = new ArrayList<>();
+        Stack<Token> operators = new Stack<>();
 
         for (Token token : tokenizedEquation) {
-            ASTNode node = new ASTNode(token);
             if (token.isNumber()) {
-                operands.add(node);
-                EZ.printAnyln(operands);
-            } else {
-                node.right = operands.removeFirst();
+                postfixEquation.add(token);
+            } else  {
 
-                boolean hasRight = (!operands.isEmpty()  && operands.getFirst() != null);
-
-                if (hasRight) {
-                    node.left = operands.removeFirst();
+                if (operators.isEmpty()) {
+                    operators.push(token);
                 } else {
-                    node.left = operators.pop();
+                    Token topToken = operators.peek();
+                    // We need to use a try-catch because toOperator throws an Exception if used on a non-operator token
+                    try {
+                        if (token.isLeftBracket() || getOperatorPrecedence(token.toOperator()) > getOperatorPrecedence(topToken.toOperator())) {
+                            operators.push(token);
+                        } else if (token.isRightBracket()) {
+                            do {
+                                postfixEquation.add(operators.pop());
+                            } while (!operators.peek().isLeftBracket());
+                                operators.pop(); // Discard left bracket, its useless.
+                        } else {
+                            do {
+                                postfixEquation.add(operators.pop());
+                            } while (!operators.isEmpty() && getOperatorPrecedence(token.toOperator()) > getOperatorPrecedence(operators.peek().toOperator()));
+                            operators.push(token);
+                        }
+                    } catch (Exception e) {
+                        throw new RuntimeException(e);
+                    }
                 }
-
-                operators.add(node);
             }
-
-            //EZ.printAnyln(node);
-
         }
 
-        return operators.removeFirst();
+        while (!operators.isEmpty()) {
+            postfixEquation.add(operators.pop());
+        }
 
-        // loop through array
-            // if number:
-                // create node
-                // push onto stack
-            // else if operator:
-                // create parent node
-                // pop first two numbers from stack
-                // push parent node to stack
+        return postfixEquation;
+    }
+
+    public static Double evaluatePostfix(ArrayList<Token> postfixEq) throws Exception {
+        Stack<Double> operands = new Stack<>();
+
+
+        for (Token token : postfixEq) {
+            try {
+                operands.push(token.toNumber());
+            } catch (Exception e) {
+                char operator;
+                Double a, b, result;
+                b = operands.pop();
+                a = operands.pop();
+
+                try {
+                    operator = token.toOperator();
+                } catch (Exception ex) {
+                    throw new RuntimeException(ex);
+                }
+
+                result = calculate(a, b, operator);
+
+                operands.push(result);
+            }
+        }
+        return operands.pop();
+    }
+
+    private static double calculate(double a, double b, char operator) throws Exception {
+
+        if (operator == '/' && b == 0) {
+            throw new Exception(String.format("ERR: Attempt to divide by 0: %.2f / %.2f",a, b ));
+        }
+
+        double result = switch (operator) {
+            case '+' -> (a + b);
+            case '-' -> (a - b);
+            case '*' -> (a * b);
+            case '/' -> (a / b);
+            case '^' -> (Math.pow(a, b));
+            default -> 0;
+        };
+        return result;
+    }
+
+
+    // Testing function
+    public static ArrayList<Token> createSamplePostFix(String rawPostFixString) {
+        Scanner parser = new Scanner(rawPostFixString).useDelimiter(" ");
+        ArrayList<Token> samplePostFix = new ArrayList<>();
+
+        while (parser.hasNext()) {
+            String value = parser.next();
+            samplePostFix.add(new Token(value));
+        }
+
+        return samplePostFix;
     }
 }

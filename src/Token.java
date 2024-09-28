@@ -9,6 +9,18 @@ public class Token {
         return "+-*/^".contains(value);
     }
 
+    public boolean isLeftBracket() {
+        return value.equals("(");
+    }
+
+    public boolean isRightBracket() {
+        return value.equals(")");
+    }
+
+    private boolean isBracket() {
+        return "()".contains(value);
+    }
+
     public boolean isNumber() {
         try {
             Double.parseDouble(value);
@@ -18,8 +30,28 @@ public class Token {
         }
     }
 
+    public boolean isNumeric() {
+        return isDecimal() || isNumber();
+    }
+
+    public boolean isDecimal() {
+        return value.equals(".");
+    }
+
+    public boolean isWhitespace() {
+        return value.equals(" ");
+    }
+
     public boolean isLegal() {
-        return isOperator() || isNumber();
+        return isOperator() || isNumber() || isBracket() || isDecimal();
+    }
+
+    public char toOperator() throws Exception {
+        if (this.isOperator() || this.isBracket()) {
+            return value.charAt(0);
+        } else {
+            throw new Exception(String.format("%s is not an operator!", value));
+        }
     }
 
     public Double toNumber() throws Exception {
