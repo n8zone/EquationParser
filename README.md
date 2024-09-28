@@ -11,7 +11,7 @@ What was once a huge intimidating problem is now something I'm confidently worki
 
 - Tokenization Basics
 - Abstract Syntax Tree Basics
+- Infix Notation to Postfix Notation conversion
 
-### Need To-Do
-- Obey order of operations
-- Parse tokens into ASTNodes
+### Known Issues
+- Requires whitespace between parentheses
