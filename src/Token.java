@@ -22,6 +22,14 @@ public class Token {
         return isOperator() || isNumber();
     }
 
+    public char toOperator() throws Exception {
+        if (this.isOperator()) {
+            return value.charAt(0);
+        } else {
+            throw new Exception(String.format("%s is not an operator!", value));
+        }
+    }
+
     public Double toNumber() throws Exception {
         if (this.isNumber()) {
             return Double.parseDouble(value);
