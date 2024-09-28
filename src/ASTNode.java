@@ -15,28 +15,14 @@ public class ASTNode {
     }
 
     private double calculate(double a, double b, char operator) {
-        double result;
-        switch(operator) {
-            case '+':
-                result = (a + b);
-                break;
-            case '-':
-                result = (a - b);
-                break;
-            case '*':
-                result = (a * b);
-                break;
-            case '/':
-                result = (a / b);
-                break;
-            case '^':
-                EZ.printAnyln(a);
-                EZ.printAnyln(b);
-                result = (Math.pow(a, b));
-                break;
-            default:
-                result = 0;
-        }
+        double result = switch (operator) {
+            case '+' -> (a + b);
+            case '-' -> (a - b);
+            case '*' -> (a * b);
+            case '/' -> (a / b);
+            case '^' -> (Math.pow(a, b));
+            default -> 0;
+        };
         return result;
     }
 

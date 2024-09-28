@@ -7,6 +7,8 @@ public class Main {
     public static void main(String[] args) {
         var eq = tokenizeEquation("-5.2 + 3 - 2");
 
+        // DO NOT FORGET TO ADD DIV BY 0 HANDLING
+
         ASTNode test1 = new ASTNode(new Token("+"));
         ASTNode left = new ASTNode(new Token("50.3"));
 
@@ -30,20 +32,21 @@ public class Main {
 
         EZ.println("Answer: %,.2f", test1.Compute());
 
-        ArrayList<Token> samplePostfix = new ArrayList<>();
+        var samplePostfix = createSamplePostFix("5 2 3 5 ^ * /");
+        ArrayList<Token> samplePostfix2 = createSamplePostFix("-5 5 *");
+        var sample3 = createSamplePostFix("5 2 3 * -");
 
-        samplePostfix.add(new Token("15"));
-        samplePostfix.add(new Token("3"));
-        samplePostfix.add(new Token("0"));
-        samplePostfix.add(new Token("/"));
-        samplePostfix.add(new Token("+"));
+
 
         EZ.printAnyln(samplePostfix);
 
         ASTNode treeStart = parseEquation(samplePostfix);
+        ASTNode tree2Start = parseEquation(samplePostfix2);
+        ASTNode tree3 = parseEquation(sample3);
 
         EZ.println("Computed: %.2f", treeStart.Compute());
-
+        EZ.println("Computed: %.2f", tree2Start.Compute());
+        EZ.println("Computed: %.2f", tree3.Compute());
 
     }
 
@@ -53,7 +56,6 @@ public class Main {
         ArrayList<Token> tokens = new ArrayList<>();
         Scanner tokenizer = new Scanner(equation).useDelimiter(" ");
 
-        // Ugly and bad; Do better later
         while (tokenizer.hasNext()) {
             Token nextToken = new Token(tokenizer.next());
 
@@ -77,9 +79,6 @@ public class Main {
     // Push operands onto stack, when encountering an operator create new 'parent' ASTNode with operands as it's children
 
     public static ASTNode parseEquation(ArrayList<Token> tokenizedEquation) {
-        // Convert token array to postfix
-            // Shunting yard algo??
-
         EZ.println("Tokens: %s", tokenizedEquation.toString());
 
         Stack<ASTNode> operators = new Stack<>();
@@ -89,34 +88,37 @@ public class Main {
             ASTNode node = new ASTNode(token);
             if (token.isNumber()) {
                 operands.add(node);
-                EZ.printAnyln(operands);
             } else {
-                node.right = operands.removeFirst();
-
-                boolean hasRight = (!operands.isEmpty()  && operands.getFirst() != null);
-
-                if (hasRight) {
-                    node.left = operands.removeFirst();
-                } else {
+                if (!operators.isEmpty()) {
                     node.left = operators.pop();
+                } else {
+                    node.left = operands.removeLast();
                 }
+
+                if (!operators.isEmpty()) {
+                    node.right = operators.pop();
+                } else {
+                    node.right = operands.removeLast();
+                }
+
+                EZ.printAnyln(node);
 
                 operators.add(node);
             }
-
-            //EZ.printAnyln(node);
-
         }
 
         return operators.removeFirst();
+    }
 
-        // loop through array
-            // if number:
-                // create node
-                // push onto stack
-            // else if operator:
-                // create parent node
-                // pop first two numbers from stack
-                // push parent node to stack
+    public static ArrayList<Token> createSamplePostFix(String rawPostFixString) {
+        Scanner parser = new Scanner(rawPostFixString).useDelimiter(" ");
+        ArrayList<Token> samplePostFix = new ArrayList<>();
+
+        while (parser.hasNext()) {
+            String value = parser.next();
+            samplePostFix.add(new Token(value));
+        }
+
+        return samplePostFix;
     }
 }
